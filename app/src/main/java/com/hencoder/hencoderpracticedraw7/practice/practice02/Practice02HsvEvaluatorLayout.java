@@ -3,6 +3,7 @@ package com.hencoder.hencoderpracticedraw7.practice.practice02;
 import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -48,10 +49,34 @@ public class Practice02HsvEvaluatorLayout extends RelativeLayout {
 
     private class HsvEvaluator implements TypeEvaluator<Integer> {
 
+        float[] startHSV = new float[3];
+        float[] endHSV = new float[3];
+        float[] nowHSV = new float[3];
+
         // 重写 evaluate() 方法，让颜色按照 HSV 来变化
         @Override
         public Integer evaluate(float fraction, Integer startValue, Integer endValue) {
-            return startValue;
+
+            Color.colorToHSV(startValue, startHSV);
+            Color.colorToHSV(endValue, endHSV);
+
+            if (endHSV[0] - startHSV[0] > 180) {
+                startHSV[0] -= 360;
+            } else if (endHSV[0] - startHSV[0] < -180) {
+                startHSV[0] += 360;
+            }
+            nowHSV[0] = startHSV[0] + (endHSV[0] - startHSV[0]) * fraction;
+            if (nowHSV[0] > 360) {
+                nowHSV[0] -= 360;
+            } else if (nowHSV[0] < 0) {
+                nowHSV[0] += 360;
+            }
+
+            nowHSV[1] = startHSV[1] + (endHSV[1] - startHSV[1]) * fraction;
+            nowHSV[2] = startHSV[2] + (endHSV[2] - startHSV[2]) * fraction;
+
+            int alpha = startValue >> 24 + (int) ((endValue >> 24 - startValue >> 24) * fraction);
+            return Color.HSVToColor(alpha, nowHSV);
         }
     }
 }
